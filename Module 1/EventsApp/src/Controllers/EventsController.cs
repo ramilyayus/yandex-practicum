@@ -19,6 +19,10 @@ public class EventsController(IEventService eventService)
     [HttpPost]
     public ActionResult<EventDto> CreateAsync([FromBody] EventDto @event)
     {
+        var eventToUpdate = eventService.TryGetByInternal(@event.InternalId);
+        if (eventToUpdate is not null)
+            return new BadRequestObjectResult("Event already exists");
+
         var result = Event.Create(
             @event.InternalId,
             @event.Title,

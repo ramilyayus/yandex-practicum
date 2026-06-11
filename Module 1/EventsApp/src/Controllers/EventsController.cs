@@ -38,13 +38,18 @@ public class EventsController(IEventService eventService)
     }
 
     [HttpPut("{internalId}")]
-    public ActionResult UpdateAsync([FromRoute] Guid internalId, [FromBody] EventDto @event)
+    public ActionResult UpdateAsync([FromRoute] Guid internalId, [FromBody] EventUpdateDto @event)
     {
         var eventToUpdate = eventService.TryGetByInternal(internalId);
         if (eventToUpdate is null)
             return new NotFoundResult();
 
-        var updatedEvent = eventToUpdate.Update(@event.Title, @event.Description, @event.StartAt, @event.EndAt);
+        var updatedEvent = eventToUpdate.Update(
+            title: @event.Title,
+            description: @event.Description,
+            startAt: @event.StartAt,
+            endAt: @event.EndAt);
+
         if (!updatedEvent.IsSuccess)
             return new BadRequestObjectResult(updatedEvent.ErrorMessages);
 

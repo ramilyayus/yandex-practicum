@@ -12,7 +12,7 @@ public record Event
     {
     }
 
-    public static Result<Event> Create( // todo learn result pattern
+    public static Result<Event> Create(
         Guid internalId,
         string title,
         string? description,
@@ -20,8 +20,13 @@ public record Event
         DateTime endAt
     )
     {
-        var validationMessages = ValidateEvent(startAt, endAt).ToList();
-
+        var validationMessages = GetValidationMessages(
+                title: title,
+                description: description,
+                startAt: startAt,
+                endAt: endAt)
+            .ToList();
+        
         if (validationMessages.Any())
             return Result<Event>.Failure(validationMessages);
 
@@ -42,7 +47,12 @@ public record Event
         DateTime startAt,
         DateTime endAt)
     {
-        var validationMessages = ValidateEvent(startAt, endAt).ToList();
+        var validationMessages = GetValidationMessages(
+                title: title,
+                description: description,
+                startAt: startAt,
+                endAt: endAt)
+            .ToList();
 
         if (validationMessages.Any())
             return Result<Event>.Failure(validationMessages);
@@ -57,12 +67,21 @@ public record Event
             });
     }
 
-    private static IEnumerable<string> ValidateEvent(
+    private static IEnumerable<string> GetValidationMessages(
+        string title,
+        string? description,
         DateTime startAt,
         DateTime endAt)
     {
+        if (string.IsNullOrWhiteSpace(title))
+            yield return "Title must not be empty";
+
+        if (description is { Length: 0 })
+            yield return "Description should be longer than zero";
+
         if (startAt > endAt)
             yield return "Start and End time must be before Start";
+
         yield break;
     }
 }

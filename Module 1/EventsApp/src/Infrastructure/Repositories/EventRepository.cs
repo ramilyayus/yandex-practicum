@@ -1,4 +1,5 @@
 using EventsApp;
+using EventsApp.Domain.Exceptions;
 
 public interface IEventRepository
 {
@@ -50,7 +51,7 @@ public class EventRepository : IEventRepository
     {
         if (_events.Any(x => x.Value.InternalId == @event.InternalId))
         {
-            throw new InvalidOperationException("Event already exists");
+            throw new AlreadyExistsException("Event already exists");
         }
         
         _events.Add(_events.Keys.Max() + 1, @event);
@@ -61,7 +62,7 @@ public class EventRepository : IEventRepository
         var existingEvent = _events.Single(x => x.Value.InternalId == internalId);
         if (existingEvent.Equals(new KeyValuePair<int, Event>(0, null)))
         {
-            throw new InvalidOperationException("Event not found");
+            throw new NotFoundException("Event not found");
         }
         
         _events[existingEvent.Key] = @event;
@@ -72,7 +73,7 @@ public class EventRepository : IEventRepository
         var existingEvent = _events.SingleOrDefault(x => x.Value.InternalId == internalId);
         if (existingEvent.Equals(new KeyValuePair<int, Event>(0, null)))
         {
-            throw new KeyNotFoundException();
+            throw new NotFoundException("Event not found");
         }
 
         _events.Remove(existingEvent.Key);

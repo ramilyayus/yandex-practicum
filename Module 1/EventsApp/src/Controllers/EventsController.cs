@@ -19,13 +19,13 @@ public class EventsController(IEventService eventService)
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
     public ActionResult<EventDto> CreateAsync([FromBody] EventDto @event)
     {
         var eventToUpdate = eventService.TryGetByInternal(@event.InternalId);
         if (eventToUpdate is not null)
-            return new BadRequestObjectResult(ApiError.From(StatusCodes.Status400BadRequest,"Event already exists"));
+            return new BadRequestObjectResult(ApiError.From(StatusCodes.Status400BadRequest, "Event already exists"));
 
         var result = Event.Create(
             @event.InternalId,
@@ -38,7 +38,7 @@ public class EventsController(IEventService eventService)
             return new BadRequestObjectResult(ApiError.From(StatusCodes.Status400BadRequest, result.ErrorMessages));
 
         eventService.Create(result.Value);
-        return new OkObjectResult(result.Value);
+        return new CreatedResult(string.Empty, result.Value);
     }
 
     [HttpPut("{internalId}")]
@@ -66,12 +66,14 @@ public class EventsController(IEventService eventService)
 
     [HttpDelete("{internalId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
     public ActionResult DeleteAsync([FromRoute] Guid internalId)
     {
-        var eventToUpdate = eventService.TryGetByInternal(internalId);
-        if (eventToUpdate is not null)
-            eventService.Delete(internalId);
+        var @event = eventService.TryGetByInternal(internalId);
+        if (@event is null)
+            return new NotFoundObjectResult(ApiError.From(StatusCodes.Status404NotFound, "Event not found"));
 
+        eventService.Delete(internalId);
         return new OkResult();
     }
 
